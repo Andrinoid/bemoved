@@ -41,18 +41,13 @@
         overflow: hidden;
     }
 
-    .prop1, .prop2 {
+    .prop1 {
     	font-size: 50px;
     	color: #fff;
+    	opacity: 0;
     	position: fixed;
     	top: 50%;
         text-shadow: 1px 1px 3px #000;
-        transition: ease all .1s;
-        display: none;
-    }
-    .container {
-        max-width: 1000px;
-        margin: 0 auto;
     }
     </style>
 
@@ -61,15 +56,13 @@
 
     <div class="story">
         <div class="container">
-
             <div class="prop1">
-           		BRENNIVÍN ist ein klarer Schnaps
+           		I WANT YOU<br>FOR U.S.ARMY
             </div>
 
             <div class="prop2">
-                WE WANT YOU<br>FOR U.S.ARMY
-            </div>
-
+                I WANT YOU<br>FOR U.S.ARMY
+            </h1>
             <div class="loading">Loading...</div>
 
         </div>
@@ -78,17 +71,17 @@
 
     <script>
 
-    // var ctrl = new ScrollMagic.Controller();
+    var ctrl = new ScrollMagic.Controller();
 
-    // new ScrollMagic.Scene({offset: 1460, duration: '1000px'})
-    // // .setTween(TweenMax.fromTo( $('.prop1'), .8, {top: 660, alpha: 0}, {top: 360, alpha: 1}) )
-    // .addTo(ctrl)
-    // .on("enter", function (event) {
-    //     TweenMax.fromTo( $('.prop1'), .8, {top: 660, alpha: 0}, {top: 360, alpha: 1});
-    // })
-    // .on("leave", function (event) {
-    //     TweenMax.to( $('.prop1'), .8, {top: -60, alpha: 0});
-    // });
+    new ScrollMagic.Scene({offset: 1460, duration: '1000px'})
+    // .setTween(TweenMax.fromTo( $('.prop1'), .8, {top: 660, alpha: 0}, {top: 360, alpha: 1}) )
+    .addTo(ctrl)
+    .on("enter", function (event) {
+        TweenMax.fromTo( $('.prop1'), .8, {top: 660, alpha: 0}, {top: 360, alpha: 1});
+    })
+    .on("leave", function (event) {
+        TweenMax.to( $('.prop1'), .8, {top: -60, alpha: 0});
+    });
 
     
     var BGMovie = (function() {
@@ -97,11 +90,11 @@
             var self = this;
 
             this.options = _.extend({
-                imageDir: '',
-                imagePrefix: '',
+                imageDir: 'images/brenni/',
+                imagePrefix: 'brenni_00',
                 imageCountFirst: 0,
-                imageCountLast: 10,
-                pxPerImg: 27,
+                imageCountLast: 509,
+                pxPerImg: 27
             }, options);
 
             this.windowHeight = $(window).height();
@@ -116,8 +109,6 @@
                 self.animate();
             });
 
-            //Subscribe to this function to show content in sync with frames
-            this.onFrame = function(index, img) {}
         }
 
         BGMovie.prototype.gatherProps = function() {
@@ -139,7 +130,7 @@
         BGMovie.prototype.setImagePreloader = function() {
             var self = this;
             //the image preloader uses chainWork and chainWork preload component
-            this.preloader = new ChainWork({debug: false})
+            this.preloader = new ChainWork({debug: true})
             .call(function getImagelist(sync) {
                 var start = self.options.imageCountFirst;
                 var end = self.options.imageCountLast;
@@ -180,7 +171,6 @@
                 this.index = this.images.length - 1; 
             }
             this.drawImage();
-
         }
 
         //Draw on the canvas like background cover
@@ -196,9 +186,7 @@
             var h = this.canvas.height;
             
             img.src = this.options.imageDir + this.images[this.index];
-            
-            this.onFrame(this.index, img);
-            
+
             if (arguments.length === 2) {
                 x = y = 0;
                 w = ctx.canvas.width;
@@ -245,70 +233,11 @@
             ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
         }
 
-        return BGMovie;
 
+        return BGMovie;
     })();
 
-    var SpotLight = (function() {
-        function SpotLight(element, i, options) {
-            this.element = this.normalizeElement(element);
-            console.log(this.element);
-            this.i = i;
-            this.options = _.extend({
-                enterFrame: 0,
-                leaveFrame: 0,
-            }, options);
-            
-
-            this.revealElement()
-        }
-
-        SpotLight.prototype.normalizeElement = function(element) {
-            //Figure out what type of element this is and return the dom element
-            var type = typeOf(element);
-            if(type === 'element')
-                return element;
-            if(element instanceof jQuery)
-                return element[0];
-            if(type === 'string') {
-                return document.querySelector(element) || document.querySelector('#' + element) || document.querySelector('.' + element);
-            }
-        }
-
-        SpotLight.prototype.revealElement = function() {
-            if(this.i > this.options.enterFrame || this.i < this.options.leaveFrame) {
-                var top = 100 - (this.i - this.options.enterFrame);
-                if(top >= 50) {
-                $(this.element)
-                    .show()
-                    .css({top: top + '%'})
-                }
-            }
-            if(this.i > this.options.leaveFrame || this.i < this.options.enterFrame) {
-                var top = 50 - (this.i - this.options.leaveFrame);
-                $(this.element)
-                    .show()
-                    .css({top: top + '%'})
-            }
-        }
-
-        return SpotLight;
-    })()
-
-
-    var bgMovie = new BGMovie({
-        imageDir: 'images/brenni/',
-        imagePrefix: 'brenni_00',
-        imageCountFirst: 0,
-        imageCountLast: 509,
-        pxPerImg: 27
-    });
-
-    bgMovie.onFrame = function(i, img) {
-        console.log(i);
-        new SpotLight('.prop1', i, {enterFrame: 108, leaveFrame: 160});
-        new SpotLight('.prop2', i, {enterFrame: 250, leaveFrame: 344});
-    }
+    var bgMovie = new BGMovie();
 
 
     </script>
