@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="skeleton.css">
+    <link rel="stylesheet" href="css/skeleton.css">
     <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
 
     <script src='//cdnjs.cloudflare.com/ajax/libs/gsap/1.16.1/TweenMax.min.js'></script>
@@ -53,14 +53,14 @@
 
 
     <canvas id="stage"></canvas>
-    
+
     <div class="story">
         <div class="container">
-            <h1 class="prop1">
+            <div class="prop1">
            		I WANT YOU<br>FOR U.S.ARMY
-            </h1>
+            </div>
 
-            <h1 class="prop1">
+            <div class="prop2">
                 I WANT YOU<br>FOR U.S.ARMY
             </h1>
             <div class="loading">Loading...</div>
@@ -89,13 +89,16 @@
         function BGMovie(options) {
             var self = this;
 
-            this.imageDir = 'images/brenni/';
-            this.imagePrefix = 'brenni_00'
-            this.imageCountFirst = 0;
-            this.imageCountLast = 509;
+            this.options = _.extend({
+                imageDir: 'images/brenni/',
+                imagePrefix: 'brenni_00',
+                imageCountFirst: 0,
+                imageCountLast: 509,
+                pxPerImg: 27
+            }, options);
 
             this.windowHeight = $(window).height();
-            this.pxPerImg = 27;
+            
             this.index = 0;
         	this.images = [];
         	this.gatherProps();
@@ -118,7 +121,7 @@
             this.canvas.width = window.innerWidth;
             this.canvas.height = window.innerHeight;
             this.windowHeight = $(window).height();
-            $(this.storyBox).height(this.images.length * this.pxPerImg + this.windowHeight);
+            $(this.storyBox).height(this.images.length * this.options.pxPerImg + this.windowHeight);
 
             //resizing clear the canvas so it must redraw
             this.drawImage();
@@ -126,11 +129,12 @@
 
         BGMovie.prototype.setImagePreloader = function() {
             var self = this;
-            this.preloader = new ChainWork({debug: false})
+            //the image preloader uses chainWork and chainWork preload component
+            this.preloader = new ChainWork({debug: true})
             .call(function getImagelist(sync) {
-                var start = self.imageCountFirst;
-                var end = self.imageCountLast;
-                var core = self.imagePrefix;
+                var start = self.options.imageCountFirst;
+                var end = self.options.imageCountLast;
+                var core = self.options.imagePrefix;
                 for(var i = start; i < end; i++) {
                     var prefix = '';
                     if(i.toString().length === 2) {
@@ -145,7 +149,7 @@
             })
             .add('imagePreloader', {
                 images: self.images,
-                prefix: this.imageDir,
+                prefix: this.options.imageDir,
                 each: function(counter, percent) {
                     //console.log(counter, percent+'%');
                 },
@@ -160,7 +164,7 @@
 
         BGMovie.prototype.animate = function() {
             var top = $(window).scrollTop() + this.windowHeight;
-            this.index = parseInt( (top /  this.pxPerImg) - (this.windowHeight/this.pxPerImg) );
+            this.index = parseInt( (top /  this.options.pxPerImg) - (this.windowHeight/this.options.pxPerImg) );
           
             //prevent index from being more than our last image
             if(this.index >= this.images.length -1) {
@@ -181,7 +185,7 @@
             var w = this.canvas.width;
             var h = this.canvas.height;
             
-            img.src = this.imageDir + this.images[this.index];
+            img.src = this.options.imageDir + this.images[this.index];
 
             if (arguments.length === 2) {
                 x = y = 0;
