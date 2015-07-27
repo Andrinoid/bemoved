@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="skeleton.css">
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+
+    <script src='//cdnjs.cloudflare.com/ajax/libs/gsap/1.16.1/TweenMax.min.js'></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/ScrollMagic.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/plugins/debug.addIndicators.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.3/plugins/animation.gsap.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.3.1/lodash.js"></script>
+    <script src='js/chainwork/chainwork.js'></script>
+    <script src='js/chainwork/chainwork-components.js'></script>
+</head>
+
+<body>
+    <style>
+    body {
+         height: 100%;
+         background: black;
+    }
+
+    #stage {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+    }
+    .story {
+        z-index: 20;
+        position: relative;
+        color: white;
+        font-size: 18px;
+        transition: all 1s linear;
+        overflow: hidden;
+    }
+
+    .prop1 {
+    	font-size: 50px;
+    	color: #fff;
+    	opacity: 0;
+    	position: fixed;
+    	top: 50%;
+        text-shadow: 1px 1px 3px #000;
+    }
+    </style>
+
+
+    <canvas id="stage"></canvas>
+    
+    <div class="story">
+        <div class="container">
+            <h1 class="prop1">
+           		I WANT YOU<br>FOR U.S.ARMY
+            </h1>
+
+            <h1 class="prop1">
+                I WANT YOU<br>FOR U.S.ARMY
+            </h1>
+            <div class="loading">Loading...</div>
+
+        </div>
+    </div>
+
+
+    <script>
+
+    var ctrl = new ScrollMagic.Controller();
+
+    new ScrollMagic.Scene({offset: 1460, duration: '1000px'})
+    // .setTween(TweenMax.fromTo( $('.prop1'), .8, {top: 660, alpha: 0}, {top: 360, alpha: 1}) )
+    .addTo(ctrl)
+    .on("enter", function (event) {
+        TweenMax.fromTo( $('.prop1'), .8, {top: 660, alpha: 0}, {top: 360, alpha: 1});
+    })
+    .on("leave", function (event) {
+        TweenMax.to( $('.prop1'), .8, {top: -60, alpha: 0});
+    });
+
+    
+    var BGMovie = (function() {
+        //This class preloads a bunch of images and animates them on a canvas on scroll
+        function BGMovie(options) {
+            var self = this;
+
+            this.imageDir = 'images/brenni/';
+            this.imagePrefix = 'brenni_00'
+            this.imageCountFirst = 0;
+            this.imageCountLast = 509;
+
+            this.windowHeight = $(window).height();
+            this.pxPerImg = 27;
+            this.index = 0;
+        	this.images = [];
+        	this.gatherProps();
+            this.setImagePreloader();
+
+            $(window).on('resize', function() { self.setTheaterSize() });
+            $(window).on('scroll', function() { 
+                self.animate();
+            });
+
+        }
+
+        BGMovie.prototype.gatherProps = function() {
+        	this.canvas = document.getElementById('stage');
+        	this.context = this.canvas.getContext('2d');
+            this.storyBox = document.querySelector('.story');
+        }
+
+        BGMovie.prototype.setTheaterSize = function() {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+            this.windowHeight = $(window).height();
+            $(this.storyBox).height(this.images.length * this.pxPerImg + this.windowHeight);
+
+            //resizing clear the canvas so it must redraw
+            this.drawImage();
+        }
+
+        BGMovie.prototype.setImagePreloader = function() {
+            var self = this;
+            this.preloader = new ChainWork({debug: false})
+            .call(function getImagelist(sync) {
+                var start = self.imageCountFirst;
+                var end = self.imageCountLast;
+                var core = self.imagePrefix;
+                for(var i = start; i < end; i++) {
+                    var prefix = '';
+                    if(i.toString().length === 2) {
+                        prefix = '0';
+                    }
+                    if(i.toString().length === 1) {
+                        prefix = '00';
+                    }
+                    self.images.push(core + prefix + i.toString() + '.jpg');
+                }
+                sync();
+            })
+            .add('imagePreloader', {
+                images: self.images,
+                prefix: this.imageDir,
+                each: function(counter, percent) {
+                    //console.log(counter, percent+'%');
+                },
+                onComplete: function(){
+                    self.setTheaterSize();
+                    $('.loading').fadeOut();
+                },
+            })
+            .play();
+
+        }
+
+        BGMovie.prototype.animate = function() {
+            var top = $(window).scrollTop() + this.windowHeight;
+            this.index = parseInt( (top /  this.pxPerImg) - (this.windowHeight/this.pxPerImg) );
+          
+            //prevent index from being more than our last image
+            if(this.index >= this.images.length -1) {
+                this.index = this.images.length - 1; 
+            }
+            this.drawImage();
+        }
+
+        //Draw on the canvas like background cover
+        //method borrowed from this answer 
+        //http://stackoverflow.com/questions/21961839/simulation-background-size-cover-in-canvas
+        BGMovie.prototype.drawImage = function(ctx, img, x, y, w, h, offsetX, offsetY) {
+            var self = this;
+        	var ctx = this.context;
+        	var img = new Image();
+            var x = 0;
+            var y = 0;
+            var w = this.canvas.width;
+            var h = this.canvas.height;
+            
+            img.src = this.imageDir + this.images[this.index];
+
+            if (arguments.length === 2) {
+                x = y = 0;
+                w = ctx.canvas.width;
+                h = ctx.canvas.height;
+            }
+
+            // default offset is center
+            offsetX = typeof offsetX === "number" ? offsetX : 0.5;
+            offsetY = typeof offsetY === "number" ? offsetY : 0.5;
+
+            // keep bounds [0.0, 1.0]
+            if (offsetX < 0) offsetX = 0;
+            if (offsetY < 0) offsetY = 0;
+            if (offsetX > 1) offsetX = 1;
+            if (offsetY > 1) offsetY = 1;
+
+            var iw = img.width,
+                ih = img.height,
+                r = Math.min(w / iw, h / ih),
+                nw = iw * r,   // new prop. width
+                nh = ih * r,   // new prop. height
+                cx, cy, cw, ch, ar = 1;
+
+            // decide which gap to fill    
+            if (nw < w) ar = w / nw;
+            if (nh < h) ar = h / nh;
+            nw *= ar;
+            nh *= ar;
+
+            // calc source rectangle
+            cw = iw / (nw / w);
+            ch = ih / (nh / h);
+
+            cx = (iw - cw) * offsetX;
+            cy = (ih - ch) * offsetY;
+
+            // make sure source rectangle is valid
+            if (cx < 0) cx = 0;
+            if (cy < 0) cy = 0;
+            if (cw > iw) cw = iw;
+            if (ch > ih) ch = ih;
+
+            // fill image in dest. rectangle
+            ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
+        }
+
+
+        return BGMovie;
+    })();
+
+    var bgMovie = new BGMovie();
+
+
+    </script>
+</body>
+
+</html>
