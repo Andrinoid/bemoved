@@ -7,11 +7,18 @@ var BGMovie = (function() {
         // We asume this is the case and auto generate the names with the values from imageCountFirst and imageCountLast
         this.options = _.extend({
             imageDir: '',
+            imageHighResDir: '',
+            imageLowResDir: '',
             imagePrefix: '',
             imageCountFirst: 0, 
             imageCountLast: 10,
-            pxPerImg: 27, //scroll 27 pixel for each frame
+            pxPerImg: 27, //default scroll 27 pixel for each frame
+            highResLoadDelay: 250,
         }, options);
+        //add tailing slash to dir if its not there.
+        this.options.imageDir = this.options.imageDir.replace(/\/?$/, '/');
+        this.options.imageHighResDir = this.options.imageHighResDir.replace(/\/?$/, '/');
+        this.options.imageLowResDir = this.options.imageLowResDir.replace(/\/?$/, '/');
 
         this.windowHeight = $(window).height();
         
@@ -21,10 +28,25 @@ var BGMovie = (function() {
         this.setImagePreloader();
 
         $(window).on('resize', function() { self.setTheaterSize() });
-        $(window).on('scroll', function() { self.animate() });
+        $(window).on('scroll', function() { 
+            self.animate();
+            clearTimeout($.data(this, 'scrollTimer'));
+            $.data(this, 'scrollTimer', setTimeout(function() {
+                // user hasn't scrolled in XXms! Lets load high res
+                var img = new Image()
+                img.src = self.options.imageHighResDir + self.images[self.index];
+                img.onload = function() {
+                    self.drawImage(true);
+                    //console.log('highres preload', img);
+                }
+
+            }, self.options.highResLoadDelay));
+        });
 
         // Subscribe to this function to show content in sync with frames
         this.onFrame = function(index, img) {}
+        // this function will be fired when all images are loaded
+        this.onReady = function() {}
     }
 
     BGMovie.prototype.gatherProps = function() {
@@ -69,14 +91,14 @@ var BGMovie = (function() {
             sync();
         })
         .add('imagePreloader', {
-            images: self.images,
-            prefix: this.options.imageDir,
+            images: this.images,
+            prefix: this.options.imageDir,//add tailing slash if it´s not there
             each: function(counter, percent) {
                 //console.log(counter, percent+'%');
             },
             onComplete: function(){
                 self.setTheaterSize();
-                $('.loading').fadeOut();
+                self.onReady();
             },
         })
         .play();
@@ -96,7 +118,7 @@ var BGMovie = (function() {
 
     }
 
-    BGMovie.prototype.drawImage = function(ctx, img, x, y, w, h, offsetX, offsetY) {
+    BGMovie.prototype.drawImage = function(highRes) {
         // Draw on the canvas like background cover
         // method borrowed from this answer 
         // http://stackoverflow.com/questions/21961839/simulation-background-size-cover-in-canvas
@@ -107,8 +129,15 @@ var BGMovie = (function() {
         var y = 0;
         var w = this.canvas.width;
         var h = this.canvas.height;
-        
-        img.src = this.options.imageDir + this.images[this.index];
+        var offsetX = 0;
+        var offsetY = 0;
+
+        if(highRes) {
+            img.src = this.options.imageHighResDir + this.images[this.index];
+        }
+        else {
+            img.src = this.options.imageDir + this.images[this.index];
+        }
         
         this.onFrame(this.index, img);
         
@@ -155,6 +184,7 @@ var BGMovie = (function() {
         if (ch > ih) ch = ih;
 
         // fill image in dest. rectangle
+        console.log(img);
         ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
     }
 

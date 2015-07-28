@@ -13,6 +13,7 @@
     body {
          height: 100%;
          background: black;
+         margin: 0;
     }
 
     #stage {
@@ -53,14 +54,30 @@
         right: 0;
         bottom: 0;
         background-color: black;
+        z-index: 1;
     }
-    .loading img {
-        position: absolute;
+    .preloader, .afterloader{
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-
     }
+    .hidden {
+        display: none;
+    }
+
+    .scrollNote {
+        text-align: center;
+        position: fixed;
+        width: 100%;
+        top: 50%;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        margin-top: 40px;
+            margin-left: 6px;
+        font-weight: 700;
+    }
+
     </style>
 
 
@@ -68,10 +85,7 @@
 
     <div class="story">
         <div class="container">
-            <div>
-                Scroll down
-
-            </div>
+           
             <div class="prop1">
                 BRENNIVÍN ist ein klarer Schnaps
             </div>
@@ -80,11 +94,12 @@
                 WE WANT YOU<br>FOR U.S.ARMY
             </div>
 
-            <div class="loading">
-                <img src="images/preloader.gif">
-            </div>
-
         </div>
+        <div class="loading">
+            <img class="preloader" src="images/preloader.gif">
+        </div>
+        <img class="afterloader" src="images/afterloader.gif">
+        <div class="scrollNote hidden">Scroll down</div>
     </div>
 
     <script src='js/jquery.min.js'></script>
@@ -94,9 +109,12 @@
     <script src='js/bemoved.js'></script>
 
     <script>
+  
 
     var bgMovie = new BGMovie({
-        imageDir: 'images/brenni/',
+        imageDir: 'images/sequence/medium/',
+        imageHighResDir: 'images/sequence/high/',
+        imageLowResDir: 'images/sequence/low/',
         imagePrefix: 'brenni_00',
         imageCountFirst: 0,
         imageCountLast: 509,
@@ -104,12 +122,18 @@
     });
 
     bgMovie.onFrame = function(i, img) {
-        console.log(i);
         new SpotLight('.prop1', i, {enterFrame: 108, leaveFrame: 160});
         new SpotLight('.prop2', i, {enterFrame: 250, leaveFrame: 344});
     }
 
-
+    bgMovie.onReady = function() {
+        $('.afterloader').attr('src', 'images/afterloader.gif');
+        $('.loading').fadeOut();
+        $('.scrollNote').delay( 3000 ).fadeIn();
+        $(window).one('scroll', function(){
+            $('.afterloader, .scrollNote').fadeOut('fast');
+        });
+    }
     </script>
 </body>
 
