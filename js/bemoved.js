@@ -73,6 +73,7 @@ var BGMovie = (function() {
         // Fix the console log performance issue by improoving the image preloader component
         // The image preloader uses chainWork and chainWork preload component
         var self = this;
+
         this.preloader = new ChainWork({debug: true})
         .call(function getImagelist(sync) {
             var start = self.options.imageCountFirst;
@@ -88,8 +89,10 @@ var BGMovie = (function() {
                 }
                 self.images.push(core + prefix + i.toString() + '.jpg');
             }
+           
             sync();
         })
+
         .add('imagePreloader', {
             images: this.images,
             prefix: this.options.imageDir,//add tailing slash if it´s not there
@@ -97,9 +100,26 @@ var BGMovie = (function() {
                 //console.log(counter, percent+'%');
             },
             onComplete: function(){
-                self.setTheaterSize();
-                self.onReady();
+               
             },
+        })
+        .call(function() {
+            //Helper function to create a range in array python style
+            // var range = function(num, val) {
+            //     var arr = [];
+            //     for(var i=0; i<num; i++) {
+            //         if(val === 0)
+            //             arr.push(0);
+            //         else
+            //             arr.push(val || i);
+            //     }
+            //     return arr;
+            // };
+            // var addedFrames = range(27, self.images[74]);
+            // self.images.splice(74, 0, addedFrames);
+            // self.images = _.flatten(self.images);
+            self.setTheaterSize();
+            self.onReady();
         })
         .play();
 
@@ -184,7 +204,6 @@ var BGMovie = (function() {
         if (ch > ih) ch = ih;
 
         // fill image in dest. rectangle
-        console.log(img);
         ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
     }
 
