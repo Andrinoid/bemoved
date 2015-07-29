@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700' rel='stylesheet' type='text/css'>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/skeleton.css">
  
@@ -10,10 +11,14 @@
 
 <body>
     <style>
+    html {
+        height: 100%;
+    }
     body {
          height: 100%;
          background: black;
          margin: 0;
+         font-family: 'Open Sans', sans-serif;
     }
 
     #stage {
@@ -22,62 +27,123 @@
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 10;
     }
     .story {
-        z-index: 20;
         position: relative;
         color: white;
         font-size: 18px;
         transition: all 1s linear;
         overflow: hidden;
+        min-height: 100%
     }
 
-    .prop1, .prop2 {
-        font-size: 50px;
+    div[class*=prop] {
+        font-size: 36px;
         color: #fff;
         position: fixed;
         top: 50%;
-        text-shadow: 1px 1px 3px #000;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.54);
         transition: ease all .1s;
         transform: translateY(-50%);
         display: none;
+    }
+
+    .prop1 {
+            top: 50%;
+    margin-top: -100px;
+    font-size: 36px;
     }
     .container {
         max-width: 1000px;
         margin: 0 auto;
     }
-    .loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: black;
-        z-index: 1;
+
+    .startScreen {
+        position: relative;
+        color: white;
     }
+
     .preloader, .afterloader{
         position: fixed;
-        top: 50%;
+        top: 60%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        margin-left: -64px;
+        margin-top: -160px;
+        z-index: 11;
     }
+ 
     .hidden {
         display: none;
+    }
+
+    .startNote {
+        text-align: center;
+        position: fixed;
+        top: 49%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        margin-top: -230px;
+        text-transform: uppercase;
+        font-size: 40px;
+        letter-spacing: 0.1em;
+        font-weight: 700;
     }
 
     .scrollNote {
         text-align: center;
         position: fixed;
+        left: 0;
+        right: 0;
         width: 100%;
-        top: 50%;
+        top: 60%;
         text-transform: uppercase;
         letter-spacing: 0.2em;
         margin-top: 40px;
-            margin-left: 6px;
         font-weight: 700;
+        z-index: 12;
+        cursor: pointer;
+    }
+    
+    @keyframes slideInDown {
+        0% {
+            transform: translate3d(0, -50%, 0);
+            opacity: 0;
+            visibility: visible;
+        }
+
+        100% {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+        }
     }
 
+    @keyframes pulse {
+        0% {
+            transform: scale3d(1, 1, 1);
+        }
+
+        50% {
+            transform: scale3d(1.05, 1.05, 1.05);
+        }
+
+        100% {
+            transform: scale3d(1, 1, 1);
+        }
+    }
+
+    .pulse {
+        animation-name: pulse;
+        animation-duration: 2s;
+        -webkit-animation-iteration-count: infinite;
+        animation-fill-mode: both;
+    }
+
+    .slideInDown {
+        animation-name: slideInDown;
+        animation-duration: 2.5s;
+        animation-fill-mode: both;
+    }
     </style>
 
 
@@ -87,19 +153,25 @@
         <div class="container">
            
             <div class="prop1">
-                BRENNIVÍN ist ein klarer Schnaps
+                Unafraid of going off<br>the beaten path and<br>breaking new ground
             </div>
 
             <div class="prop2">
-                WE WANT YOU<br>FOR U.S.ARMY
+                What you see<br>is what you get.<br>Honest and truthful
             </div>
 
+            <div class="prop3">
+                Unafraid of going off the<br>beaten path and breaking new ground
+            </div>
+            
+            <div class="startNote slideInDown">Capture the moment</div>
+
         </div>
-        <div class="loading">
-            <img class="preloader" src="images/preloader.gif">
-        </div>
-        <img class="afterloader" src="images/afterloader.gif">
+    </div>
+    <div class="container startScreen">
         <div class="scrollNote hidden">Scroll down</div>
+        <img class="afterloader" src="images/afterloader.gif">
+        <img class="preloader" src="images/preloader.gif">
     </div>
 
     <script src='js/jquery.min.js'></script>
@@ -109,31 +181,43 @@
     <script src='js/bemoved.js'></script>
 
     <script>
-  
+    window.scrollTo(0, 0);
+    
 
-    var bgMovie = new BGMovie({
-        imageDir: 'images/sequence/medium/',
-        imageHighResDir: 'images/sequence/high/',
-        imageLowResDir: 'images/sequence/low/',
-        imagePrefix: 'brenni_00',
-        imageCountFirst: 0,
-        imageCountLast: 509,
-        pxPerImg: 27
-    });
-
-    bgMovie.onFrame = function(i, img) {
-        new SpotLight('.prop1', i, {enterFrame: 108, leaveFrame: 160});
-        new SpotLight('.prop2', i, {enterFrame: 250, leaveFrame: 344});
-    }
-
-    bgMovie.onReady = function() {
-        $('.afterloader').attr('src', 'images/afterloader.gif');
-        $('.loading').fadeOut();
-        $('.scrollNote').delay( 3000 ).fadeIn();
-        $(window).one('scroll', function(){
-            $('.afterloader, .scrollNote').fadeOut('fast');
+        var bgMovie = new BGMovie({
+            imageDir: 'images/sequence/medium/',
+            imageHighResDir: 'images/sequence/high/',
+            imageLowResDir: 'images/sequence/low/',
+            imagePrefix: 'brenni_00',
+            imageCountFirst: 0,
+            imageCountLast: 509,
+            pxPerImg: 27
         });
-    }
+
+        bgMovie.onFrame = function(i, img) {
+            console.log(i);
+            new SpotLight('.startNote', i, {enterFrame: -100, leaveFrame: 72});
+            new SpotLight('.prop1', i, {enterFrame: 100, leaveFrame: 204});
+            new SpotLight('.prop2', i, {enterFrame: 280, leaveFrame: 374});
+        }
+
+        bgMovie.onReady = function() {
+            $('.preloader').fadeOut();
+            $('.scrollNote').delay( 3000 ).fadeIn();
+            $('.afterloader').attr('src', 'images/afterloader.gif').delay(3500).addClass('pulse');
+
+            $(window).one('scroll', function(){
+                $('.afterloader').fadeOut('fast');
+                $('.scrollNote').fadeOut('slow');
+            });
+
+            $('.scrollNote, .afterloader').on('click', function() {
+                $('html, body').animate({
+                    scrollTop: 2018
+                }, 4600);
+            })
+        }
+
     </script>
 </body>
 
