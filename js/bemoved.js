@@ -69,12 +69,10 @@ var BGMovie = (function() {
     }
 
     BGMovie.prototype.setImagePreloader = function() {
-        // TODO
-        // Fix the console log performance issue by improoving the image preloader component
         // The image preloader uses chainWork and chainWork preload component
         var self = this;
 
-        this.preloader = new ChainWork({debug: true})
+        this.preloader = new ChainWork({debug: false})
         .call(function getImagelist(sync) {
             var start = self.options.imageCountFirst;
             var end = self.options.imageCountLast;
@@ -99,8 +97,8 @@ var BGMovie = (function() {
             each: function(counter, percent) {
                 //console.log(counter, percent+'%');
             },
-            onComplete: function(){
-               
+            onComplete: function(loadedImages){
+               self.loadedImages = loadedImages;
             },
         })
         .call(function() {
@@ -144,7 +142,12 @@ var BGMovie = (function() {
         // http://stackoverflow.com/questions/21961839/simulation-background-size-cover-in-canvas
         var self = this;
         var ctx = this.context;
-        var img = new Image();
+        if(highRes) {
+            var img = new Image();
+        }
+        else {
+            var img = this.loadedImages[this.index];
+        }
         var x = 0;
         var y = 0;
         var w = this.canvas.width;
